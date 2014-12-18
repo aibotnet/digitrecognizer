@@ -36,6 +36,7 @@ def splitDataSet(dataSet, axis, value):
 ##
 
 def chooseBestFeatureToSplit(dataSet):
+    print 'best fit..'
     numFeatures = len(dataSet[0]) - 1      #the last column is used for the labels
     baseEntropy = calcShannonEnt(dataSet)
     bestInfoGain = 0.0; bestFeature = -1
@@ -73,6 +74,7 @@ def majorityCnt(classList):
 def createTree(dataSet,labels):
     classList = [example[-1] for example in dataSet]
 
+
     if classList.count(classList[0]) == len(classList):
         return classList[0]#stop splitting when all of the classes are equal
     if len(dataSet[0]) == 1: #stop splitting when there are no more features in dataSet
@@ -82,8 +84,13 @@ def createTree(dataSet,labels):
     bestFeat = chooseBestFeatureToSplit(dataSet)
     bestFeatLabel = labels[bestFeat]
     myTree = {bestFeatLabel:{}}
+
+    print bestFeat
+
     del(labels[bestFeat])
     featValues = [example[bestFeat] for example in dataSet]
+
+
     uniqueVals = set(featValues)
     for value in uniqueVals:
         subLabels = labels[:]       #copy all of labels, so trees don't mess up existing labels
@@ -121,24 +128,34 @@ def createDataSet(train_file):
 
 def main():
     dataSet,labels = createDataSet('train.csv')
-    print 'Dataset created'
     labels1=copy.deepcopy(labels)
-    print 'copyCreated'
-    mytree = createTree(dataSet[:100], labels1)
-    print 'Tree created'
+
+
+
+    print 'creating tree ....'
+    mytree = createTree(dataSet, labels1)
+
     f=open('test.csv')
     out=open('rf_benchmark.csv', 'w')
     f.readline()
     out.write('ImageId,Label\n')
+
     i=1
+    reject = 0
     for line in f:
         line=line.split(',')
         line[783]=line[783].split('\r\n')[:1][0]
         p_res=1
-        p_res = classify(mytree,labels,line)
+        try:
+            p_res = classify(mytree,labels,line)
+        except Exception:
+            p_res =  -1
+            reject+=0
+
         out.write('%d,%s\n'%(i,p_res))
         print ('classifiedDigit is : %s'%p_res)
         i=i+1
 
+    print reject
 if __name__=='__main__':
     main()
